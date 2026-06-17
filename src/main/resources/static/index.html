@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>InventoryAI — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">▣</span>
+      <span class="brand-name">InventoryAI</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item active" data-view="dashboard" onclick="showView('dashboard')">
+        <span class="nav-icon">◈</span> Dashboard
+      </a>
+      <a class="nav-item" data-view="inventory" onclick="showView('inventory')">
+        <span class="nav-icon">≡</span> Inventory
+      </a>
+      <a class="nav-item" data-view="analytics" onclick="showView('analytics')">
+        <span class="nav-icon">⋈</span> Analytics
+      </a>
+      <a class="nav-item" data-view="ai" onclick="showView('ai')">
+        <span class="nav-icon">✦</span> AI Insights
+      </a>
+      <a class="nav-item" data-view="add" onclick="showView('add')">
+        <span class="nav-icon">+</span> Add Item
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-dot"></div>
+      <span>API Connected</span>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-right">
+        <div id="lowStockBadge" class="badge-alert hidden">⚠ Low Stock Alert</div>
+        <div class="topbar-clock" id="clock"></div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD VIEW -->
+    <div id="view-dashboard" class="view active">
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Summary</div>
+          <div class="stat-value mono" id="summary">—</div>
+          <div class="stat-sub">Across all categories</div>
+        </div>
+        <div class="stat-card accent-warn">
+          <div class="stat-label">Health Score</div>
+          <div class="stat-value mono" id="health">—</div>
+          <div class="stat-sub">Based on reorder levels</div>
+        </div>
+        <div class="stat-card accent-danger">
+          <div class="stat-label">Critical Items</div>
+          <div class="stat-value mono large" id="criticalCount">—</div>
+          <div class="stat-sub">Out-of-stock products</div>
+        </div>
+      </div>
+
+      <div class="section-title">Recent Inventory</div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="dashboardTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INVENTORY VIEW -->
+    <div id="view-inventory" class="view hidden">
+      <div class="toolbar">
+        <input class="search-box" type="text" id="searchBox" placeholder="Search products…" oninput="filterTable()"/>
+        <select class="filter-select" id="categoryFilter" onchange="filterTable()">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Reorder At</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ANALYTICS VIEW -->
+    <div id="view-analytics" class="view hidden">
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-label">Stock by Product</div>
+          <canvas id="chartBar"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-label">Category Distribution</div>
+          <canvas id="chartDoughnut"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI INSIGHTS VIEW -->
+    <div id="view-ai" class="view hidden">
+      <div class="ai-header">
+        <span class="ai-badge">✦ AI</span>
+        <p class="ai-desc">Smart suggestions based on current stock levels and reorder thresholds.</p>
+      </div>
+      <div id="aiBox" class="ai-grid"></div>
+    </div>
+
+    <!-- ADD ITEM VIEW -->
+    <div id="view-add" class="view hidden">
+      <div class="form-card">
+        <div class="form-title">Add New Product</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="f-name" placeholder="e.g. USB Cable"/>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="f-category" placeholder="e.g. Electronics"/>
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" id="f-quantity" placeholder="0" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Price (₹)</label>
+            <input type="number" id="f-price" placeholder="0.00" min="0" step="0.01"/>
+          </div>
+          <div class="form-group">
+            <label>Reorder Level</label>
+            <input type="number" id="f-reorder" placeholder="5" min="0"/>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addItem()">Add to Inventory</button>
+        <div id="formMsg" class="form-msg hidden"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- UPDATE QTY MODAL -->
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">Update Quantity</div>
+    <div class="modal-sub" id="modalItemName"></div>
+    <input type="number" id="modalQty" class="modal-input" min="0" placeholder="New quantity"/>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveQty()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
