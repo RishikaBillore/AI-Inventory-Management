@@ -2,7 +2,7 @@
    InventoryAI — app.js
    Connects to Spring Boot REST API at /items
    ============================================== */
-
+console.log("START");
 const API = "/items";
 
 let barChart    = null;
@@ -14,10 +14,31 @@ let allItems    = [];
    INIT
 ----------------------------------------------- */
 document.addEventListener("DOMContentLoaded", () => {
-  startClock();
-  showView("dashboard");
-});
 
+  startClock();
+
+  const loggedIn =
+      localStorage.getItem("loggedIn");
+
+  if (loggedIn === "true") {
+
+      document
+          .getElementById("loginPage")
+          .style.display = "none";
+
+      document
+          .getElementById("dashboardApp")
+          .classList.remove("hidden");
+
+      showView("dashboard");
+
+  } else {
+
+      document
+          .getElementById("dashboardApp")
+          .classList.add("hidden");
+  }
+});
 /* -----------------------------------------------
    CLOCK
 ----------------------------------------------- */
@@ -457,9 +478,15 @@ async function saveQty() {
 }
 
 // Close modal on overlay click
-document.getElementById("modal").addEventListener("click", function(e) {
-  if (e.target === this) closeModal();
-});
+const modal = document.getElementById("modal");
+
+if (modal) {
+    modal.addEventListener("click", function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+}
 
 /* -----------------------------------------------
    HELPERS
@@ -477,3 +504,85 @@ function escHtml(str) {
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;");
 }
+console.log("REACHED LOGIN FUNCTION");
+window.login = async function login() {
+
+    const username =
+        document.getElementById("username").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    try {
+
+        const response = await fetch(
+            "/auth/login",
+            {
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    username,
+                    password
+                })
+            }
+        );
+
+        const result = await response.text();
+
+        if(result === "LOGIN_SUCCESS") {
+
+            localStorage.setItem(
+                "loggedIn",
+                "true"
+            );
+
+            document
+                .getElementById("loginPage")
+                .style.display = "none";
+
+            document
+                .getElementById("dashboardApp")
+                .classList.remove("hidden");
+
+            loadDashboard();
+
+        } else {
+
+            document
+                .getElementById("loginError")
+                .innerText =
+                "Invalid username or password";
+        }
+
+    } catch(err) {
+
+        document
+            .getElementById("loginError")
+            .innerText =
+            "Cannot connect to server";
+    }
+}
+window.logout= function logout() {
+
+    localStorage.removeItem("loggedIn");
+
+    document
+        .getElementById("dashboardApp")
+        .classList.add("hidden");
+
+    document
+        .getElementById("loginPage")
+        .style.display = "flex";
+
+    document
+        .getElementById("username")
+        .value = "";
+
+    document
+        .getElementById("password")
+        .value = "";
+}
+console.log("APP JS LOADED");
+console.log("LOGIN =", typeof login);

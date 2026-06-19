@@ -1,6 +1,9 @@
 package com.rishika.inventoryai.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 
 @Entity
 public class InventoryItem {
@@ -9,15 +12,23 @@ public class InventoryItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
+    @OneToMany(mappedBy = "item")
+    private List<InventoryTransaction> transactions;
 
-    private String category;
+    @NotBlank(message = "Name is required")
+private String name;
 
-    private int quantity;
+@NotBlank(message = "Category is required")
+private String category;
 
-    private double price;
+@Min(value = 0, message = "Quantity cannot be negative")
+private int quantity;
 
-    private int reorderLevel;
+@Min(value = 1, message = "Price must be greater than 0")
+private double price;
+
+@Min(value = 0, message = "Reorder level cannot be negative")
+private int reorderLevel;
 
     // Constructors
     public InventoryItem() {}
@@ -77,5 +88,14 @@ public class InventoryItem {
 
     public void setReorderLevel(int reorderLevel) {
         this.reorderLevel = reorderLevel;
+    }
+
+    public List<InventoryTransaction> getTransactions() {
+    return transactions;
+}
+
+    public void setTransactions(
+            List<InventoryTransaction> transactions) {
+        this.transactions = transactions;
     }
 }

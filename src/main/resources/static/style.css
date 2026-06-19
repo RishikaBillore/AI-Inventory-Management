@@ -678,3 +678,62 @@ html, body {
   color: transparent;
   user-select: none;
 }
+/* LOGIN */
+
+.login-page{
+    width:100%;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#0d0f12;
+}
+
+.login-card{
+    width:400px;
+    background:#13161b;
+    border:1px solid #252932;
+    border-radius:12px;
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+
+.login-card h1{
+    text-align:center;
+    margin:0;
+}
+
+.login-card p{
+    text-align:center;
+    color:#6b7484;
+    margin-bottom:10px;
+}
+
+.login-card input{
+    background:#1a1e26;
+    border:1px solid #2e3440;
+    color:white;
+    padding:12px;
+    border-radius:8px;
+}
+
+.login-card button{
+    background:#4a90d9;
+    color:white;
+    border:none;
+    padding:12px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.login-card button:hover{
+    opacity:0.9;
+}
+
+#loginError{
+    color:#ff6b6b;
+    text-align:center;
+    margin-top:5px;
+}

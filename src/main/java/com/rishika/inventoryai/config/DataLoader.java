@@ -4,15 +4,22 @@ import com.rishika.inventoryai.model.InventoryItem;
 import com.rishika.inventoryai.repository.InventoryRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import com.rishika.inventoryai.model.User;
+import com.rishika.inventoryai.repository.UserRepository;
 
 @Component
 public class DataLoader implements CommandLineRunner {
 
     private final InventoryRepository repository;
+    private final UserRepository userRepository;
 
-    public DataLoader(InventoryRepository repository) {
-        this.repository = repository;
-    }
+    public DataLoader(
+        InventoryRepository repository,
+        UserRepository userRepository) {
+
+    this.repository = repository;
+    this.userRepository = userRepository;
+}
 
     @Override
     public void run(String... args) throws Exception {
@@ -23,8 +30,15 @@ public class DataLoader implements CommandLineRunner {
         //  and would be essential if you ever switch to a persistent DB).
         if (repository.count() > 0) {
             System.out.println("Database already has data — skipping seed.");
-            return;
+            return;    
         }
+        userRepository.save(
+        new User(
+                "admin",
+                "admin123",
+                "ADMIN"
+        )
+    );
 
         repository.save(new InventoryItem("Laptop",      "Electronics",   5,   55000, 2));
         repository.save(new InventoryItem("Mouse",       "Electronics",  50,     500, 10));

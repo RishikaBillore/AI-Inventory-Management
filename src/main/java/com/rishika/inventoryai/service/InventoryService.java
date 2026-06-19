@@ -4,16 +4,28 @@ import com.rishika.inventoryai.model.InventoryItem;
 import com.rishika.inventoryai.repository.InventoryRepository;
 import org.springframework.stereotype.Service;
 
+import com.rishika.inventoryai.dto.InventoryResponseDto;
+import com.rishika.inventoryai.exception.ResourceNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import java.util.List;
+import com.rishika.inventoryai.repository.InventoryTransactionRepository;
+import com.rishika.inventoryai.model.InventoryTransaction;
+import java.time.LocalDateTime;
 
 @Service
 public class InventoryService {
 
     private final InventoryRepository repository;
+    private final InventoryTransactionRepository transactionRepository;
 
-    public InventoryService(InventoryRepository repository) {
-        this.repository = repository;
-    }
+   public InventoryService(
+        InventoryRepository repository,
+        InventoryTransactionRepository transactionRepository) {
+
+    this.repository = repository;
+    this.transactionRepository = transactionRepository;
+}
 
     // ➕ Add item
     public InventoryItem addItem(InventoryItem item) {
@@ -25,10 +37,20 @@ public class InventoryService {
         return repository.findAll();
     }
 
+    public Page<InventoryItem> getAllItems(
+        int page,
+        int size) {
+
+    return repository.findAll(
+            PageRequest.of(page, size));
+    }
+
 
     public InventoryItem getItemById(Long id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
+                .orElseThrow(() ->
+        new ResourceNotFoundException(
+                "Item not found with id " + id));
     }
 
    
@@ -38,10 +60,36 @@ public class InventoryService {
 
     
     public InventoryItem updateQuantity(Long id, int quantity) {
-        InventoryItem item = getItemById(id);
-        item.setQuantity(quantity);
-        return repository.save(item);
+
+    InventoryItem item = getItemById(id);
+
+    int oldQuantity = item.getQuantity();
+
+    item.setQuantity(quantity);
+
+    InventoryItem updatedItem =
+            repository.save(item);
+
+    String type;
+
+    if(quantity > oldQuantity) {
+        type = "STOCK_IN";
+    } else {
+        type = "STOCK_OUT";
     }
+
+    InventoryTransaction transaction =
+            new InventoryTransaction(
+                    type,
+                    Math.abs(quantity - oldQuantity),
+                    LocalDateTime.now(),
+                    updatedItem
+            );
+
+    transactionRepository.save(transaction);
+
+    return updatedItem;
+}
 
     
 
@@ -110,5 +158,31 @@ public String getInventoryHealthScore() {
             "% | Healthy: " + healthy +
             ", Low: " + low +
             ", Critical: " + critical;
+}
+
+private InventoryResponseDto mapToDto(
+        InventoryItem item) {
+
+    return new InventoryResponseDto(
+            item.getId(),
+            item.getName(),
+            item.getCategory(),
+            item.getQuantity(),
+            item.getPrice(),
+            item.getReorderLevel()
+    );
+}
+public InventoryResponseDto getItemDto(Long id) {
+
+    InventoryItem item = getItemById(id);
+
+    return mapToDto(item);
+}
+public List<InventoryResponseDto> getAllItemDtos() {
+
+    return repository.findAll()
+            .stream()
+            .map(this::mapToDto)
+            .toList();
 }
 }
